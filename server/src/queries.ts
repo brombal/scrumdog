@@ -19,7 +19,7 @@ export async function registerUser(userId: string, name: string, socket): Promis
     return value;
   } else {
     const { insertedId } = await users().insertOne({ sockets: [socket.id], name } as User);
-    return { _id: insertedId.toHexString(), name } as User;
+    return { _id: (insertedId as ObjectId).toHexString(), name } as User;
   }
 }
 
@@ -69,7 +69,7 @@ export function setUserRoom(user: User, room, isHost: boolean): Promise<User> {
 
 export async function updateUser(user: User | string, updates: Partial<User>): Promise<User> {
   const res = await users().findOneAndUpdate(
-    typeof user === "string" ? { _id: user } : { _id: user._id },
+    typeof user === "string" ? { _id: ObjectId.createFromHexString(user) } : { _id: user._id },
     { $set: cleanObject(updates) },
     { returnOriginal: false }
   );
