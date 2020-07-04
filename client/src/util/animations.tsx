@@ -81,3 +81,26 @@ export function FlipAnimate({ visible = true, reverse = false, ...other }: Styli
     />
   );
 }
+
+interface FadeAnimateProps {
+  visible?: boolean;
+  children: any;
+}
+
+export function FadeAnimate({ visible = true, ...other }: StylixProps & FadeAnimateProps) {
+  return (
+    <$
+      data-label="FadeAnimate"
+      $el={motion.div}
+      variants={{
+        visible: { opacity: 1, pointerEvents: "auto" },
+        hidden: { opacity: 0, pointerEvents: "none" },
+      }}
+      initial="hidden"
+      exit="hidden"
+      $elProps={{ transition: { opacity: { type: "spring", damping: 20, stiffness: 150 } } }}
+      animate={visible ? "visible" : "hidden"}
+      {...other}
+    />
+  );
+}

@@ -21,6 +21,7 @@ import {
   updateUserName,
   useSocketConnectedEffect,
 } from "./scrum";
+import { useEventEmitter } from "./util/useEvent";
 
 export default function Debugger() {
   const state = store.useState((s) => s);
@@ -37,6 +38,8 @@ export default function Debugger() {
         setRoomCodeInput("");
       });
   });
+
+  const emitter = useEventEmitter();
 
   return (
     <$.div display="flex" font-size="16px">
@@ -64,7 +67,7 @@ export default function Debugger() {
         ) : state.state === "prompt-join" ? (
           <form
             onSubmit={(e) => {
-              joinRoom(roomCodeInput);
+              joinRoom(roomCodeInput, emitter);
               e.preventDefault();
             }}
           >

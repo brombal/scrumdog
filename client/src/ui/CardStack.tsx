@@ -89,7 +89,7 @@ export default function CardStack({
         position="relative"
         z-index={1}
       >
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
           {childOrder.current
             .map((i) => children[i])
             .filter(Boolean)

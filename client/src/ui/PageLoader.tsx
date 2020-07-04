@@ -1,8 +1,9 @@
 import { CircularProgress } from "@material-ui/core";
 import React from "react";
-
-import { ZoomAnimate } from "@client/util/animations";
 import $, { StylixProps } from "stylix";
+
+import { flexCentered } from "@client/ui/styles";
+import { ZoomAnimate } from "@client/util/animations";
 
 interface PageLoaderProps {
   label: string;
@@ -11,10 +12,8 @@ interface PageLoaderProps {
 export default function PageLoader({ label, ...other }: PageLoaderProps & StylixProps) {
   return (
     <ZoomAnimate
-      display="flex"
+      {...flexCentered}
       flex-direction="column"
-      align-items="center"
-      justify-content="center"
       pointer-events="none"
       font-size={22}
       data-label={`PageLoader:${label}`}

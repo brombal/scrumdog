@@ -17,6 +17,7 @@ import { absFullSize, flexCentered } from "@client/ui/styles";
 import UserNameInput from "@client/ui/UserNameInput";
 import { ZoomAnimate } from "@client/util/animations";
 import useLatestValue from "@client/util/useLatestValue";
+import usePresenceTimer from "@client/util/usePresenceTimer";
 
 type HostRoomProps = {};
 
@@ -28,10 +29,7 @@ export default function HostRoom({ ...other }: HostRoomProps & StylixProps) {
 
   const idle = useIdle(1000, true);
 
-  const [isPresent, setSafeExit] = usePresence();
-  useEffect(() => {
-    !isPresent && setTimeout(() => setSafeExit(), 1000);
-  }, [isPresent]);
+  const isPresent = usePresenceTimer(1000);
 
   type HostMode = "" | "waiting" | "lobby";
 
@@ -135,9 +133,9 @@ export default function HostRoom({ ...other }: HostRoomProps & StylixProps) {
         <$.div data-label="HostRoom-user-wrap" position="relative" flex="1 1 auto">
           <AnimatePresence>
             {isPresent && (
-              <ZoomAnimate key={mode} {...absFullSize} {...flexCentered} flex-direction="column">
+              <ZoomAnimate key={mode} {...absFullSize} {...flexCentered}>
                 {mode === "waiting" && (
-                  <>
+                  <$.div {...flexCentered} flex-direction="column" padding-bottom="2rem">
                     <$.div font-size="0.8rem" line-height="normal" letter-spacing={1}>
                       room code
                     </$.div>
@@ -159,7 +157,7 @@ export default function HostRoom({ ...other }: HostRoomProps & StylixProps) {
                     >
                       waiting for players...
                     </$>
-                  </>
+                  </$.div>
                 )}
                 {mode === "lobby" && visibleUsers?.length && (
                   <CardStack cardWidth={3.2} cardHeight={4} shuffle={isVoting} onShuffleState={setShuffleState}>

@@ -92,7 +92,7 @@ export function VoteCard({ size = 1, vote, selected = false, ...other }: VoteCar
       position="relative"
       {...other}
     >
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         <ZoomAnimate key={vote} {...absFullSize} {...flexCentered}>
           <$.span font-size={1.7 - 0.2 * stringLength(vote) + "em"}>{vote}</$.span>
         </ZoomAnimate>

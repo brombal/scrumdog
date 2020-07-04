@@ -47,7 +47,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
 
-io.on("connection", async (socket) => {
+io?.on("connection", async (socket) => {
   idEvent.on(socket, async ({ id, name }) => {
     await delay(1);
 
@@ -121,8 +121,12 @@ io.on("connection", async (socket) => {
     const user = await findUserForSocket(socket);
     if (user) {
       await endUserSession(user);
-      if (user.host) roomClosedEvent.emit(socket.to(user.room));
-      else userLeftEvent.emit(socket.to(user.room), userSendable(user));
+      if (user.host) {
+        await updateAllPlayers(user.room, { vote: "" });
+        roomClosedEvent.emit(socket.to(user.room));
+      } else {
+        userLeftEvent.emit(socket.to(user.room), userSendable(user));
+      }
     }
     socket.leaveAll();
   });

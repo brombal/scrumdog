@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import io from "socket.io-client";
 
 import Ambient from "@client/util/ambient/ambient";
+import { EventEmitter } from "@client/util/useEvent";
 import {
   castVoteEvent,
   createRoomEvent,
@@ -23,7 +24,7 @@ import {
   voteResetEvent,
 } from "@shared/socket";
 import { DeckCardValue, Room, roomUpdatable, User } from "@shared/types";
-import { cleanObject, delay, toggleEntry, tryJsonParse } from "@shared/util";
+import { cleanObject, toggleEntry, tryJsonParse } from "@shared/util";
 
 export interface ScrumdogStore {
   /**
@@ -36,6 +37,8 @@ export interface ScrumdogStore {
    */
   connected: boolean;
 
+  error: boolean;
+
   /**
    * The room that the user is currently in
    */
@@ -45,13 +48,14 @@ export interface ScrumdogStore {
 }
 
 let socket: SocketIOClient.Socket;
+let socketReconnectInterval: any;
 
 export function getLocalStorageState() {
   return tryJsonParse(localStorage.getItem("ambient")) || {};
 }
 
 export const store = new Ambient(
-  defaultsDeep({ state: "pending", users: [], connected: false }, getLocalStorageState(), {
+  defaultsDeep({ state: "pending", users: [], connected: false, error: false }, getLocalStorageState(), {
     me: { me: true, name: "" },
     room: {},
   }) as ScrumdogStore
@@ -99,6 +103,17 @@ export async function connectWebSocket(): Promise<{ room: Room; users: User[] }>
 
   window.socket = socket = io(window.env.REACT_URL_SOCKET);
 
+  socket.on("connect_error", (e) => {
+    console.log("error", e);
+    if (e.type !== "TransportError") {
+      store.update((s) => (s.error = true));
+    }
+  });
+
+  socket.on("connect_timeout", (e) => {
+    // ?
+  });
+
   userJoinedEvent.on(socket, (user: User) => {
     store.update((state) => {
       state.users.push(user);
@@ -143,9 +158,7 @@ export async function connectWebSocket(): Promise<{ room: Room; users: User[] }>
   });
 
   roomClosedEvent.on(socket, () => {
-    socket.disconnect();
-    window.socket = socket = null;
-    console.log("room closed");
+    disconnectWebSocket();
     store.update((s) => {
       s.room = null;
       s.users = [];
@@ -154,37 +167,47 @@ export async function connectWebSocket(): Promise<{ room: Room; users: User[] }>
     });
   });
 
-  const { me } = store.get();
-
-  const result = await idEvent.emit(socket, { id: me._id, name: me.name });
-
-  store.update((s) => {
-    s.me = result.user;
-    // s.room = room;
-    // s.users = users || [];
-    s.connected = true;
+  socket.on("disconnect", () => {
+    console.log("disconnected!");
+    store.update((s) => (s.connected = false));
   });
 
-  return result;
+  return new Promise((resolve) => {
+    socket.on("connect", (e) => {
+      console.log("connected!", e);
+      clearInterval(socketReconnectInterval);
+      store.update((s) => {
+        s.error = false;
+        s.connected = true;
+      });
+
+      const { me } = store.get();
+
+      idEvent.emit(socket, { id: me._id, name: me.name }).then((result) => {
+        store.update((s) => {
+          s.me = result.user;
+        });
+        resolve(result);
+      });
+    });
+  });
 }
 
-export async function joinRoom(code: string) {
-  const state = store.get();
+function disconnectWebSocket() {
+  socket.removeAllListeners();
+  socket.close();
+  window.socket = socket = null;
+}
 
-  // If already in a room, or doing something, quit
-  // if (state.state) return;
-
+export async function joinRoom(code: string, eventEmitter: EventEmitter) {
   store.update((s) => {
     s.state = "joining-room";
-    // s.users = [];
-    // s.room = null;
   });
 
   await connectWebSocket();
 
   const { room, users } = (await joinRoomEvent.emit(socket, code)) || {};
   if (room) {
-    console.log("id room", room);
     store.update((s) => {
       s.state = "";
       s.room = room;
@@ -192,12 +215,13 @@ export async function joinRoom(code: string) {
     });
   } else {
     // error (no room)
+    eventEmitter("invalid-room", code);
+    disconnectWebSocket();
     store.update((s) => (s.state = "prompt-join"));
   }
 }
 
 export async function createRoom() {
-  console.log("createRoom");
   const state = store.get();
 
   // If already in a room, or doing something, quit
@@ -205,7 +229,6 @@ export async function createRoom() {
 
   store.update((s) => {
     s.state = "creating-room";
-    // s.room = null;
   });
 
   await connectWebSocket();
@@ -220,9 +243,7 @@ export async function createRoom() {
 
 export async function leaveRoom() {
   leaveRoomEvent.emit(socket);
-  socket.disconnect();
-  window.socket = socket = null;
-  console.log("leaveRoom");
+  disconnectWebSocket();
   store.update((s) => {
     s.room = null;
     s.me.vote = "";
@@ -254,9 +275,15 @@ export function toggleDeckCard(card: DeckCardValue) {
 }
 
 export function promptJoinRoom() {
-  console.log("promptJoinRoom");
   store.update((s) => {
     s.state = "prompt-join";
+    s.room = null;
+  });
+}
+
+export function cancelPromptJoinRoom() {
+  store.update((s) => {
+    s.state = "";
     s.room = null;
   });
 }

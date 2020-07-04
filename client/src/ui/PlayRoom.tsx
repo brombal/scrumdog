@@ -17,16 +17,14 @@ import { delay } from "@shared/util";
 import { decks } from "@shared/values";
 
 import Button from "./Button";
+import usePresenceTimer from "@client/util/usePresenceTimer";
 
 export default function PlayRoom(other: StylixProps) {
-  const [state, room, users, me] = store.useState((s) => [s.state, s.room, s.users, s.me]);
+  const [room, users, me] = store.useState((s) => [s.room, s.users, s.me]);
   const roomUrl = room && `${window.location.protocol}//${window.location.host}/${room.code}`;
   const host = users?.find((u) => u.host);
 
-  const [isPresent, setSafeExit] = usePresence();
-  useEffect(() => {
-    !isPresent && setTimeout(() => setSafeExit(), 1000);
-  }, [isPresent]);
+  const isPresent = usePresenceTimer(1000);
 
   const isVoting = room?.state === "voting";
 
@@ -52,10 +50,11 @@ export default function PlayRoom(other: StylixProps) {
       data-label="HostRoom"
       pointer-events={isPresent ? "auto" : "none"}
       {...other}
+      {...flexCentered}
     >
       {/* top room code / user name */}
       <$.div data-label="PlayRoom-header" flex="0 0 100px" display="flex" align-items="center" justify-content="center">
-        <AnimatePresence>{isPresent && <RoomHeader roomCode={room?.code} roomUrl={roomUrl} />}</AnimatePresence>
+        <RoomHeader roomCode={room?.code} roomUrl={roomUrl} />
       </$.div>
 
       <$.div
@@ -124,27 +123,23 @@ export default function PlayRoom(other: StylixProps) {
         {...flexCentered}
         align-items="flex-end"
       >
-        <AnimatePresence>
-          {/* players */}
-          {isPresent && (
-            <ZoomAnimate>
-              <CardStack cardWidth={2} cardHeight={2.4} shuffle={isVoting} onShuffleState={setShuffleState}>
-                {users
-                  .filter((u) => !u.host && !u.me)
-                  .map((u) => (
-                    <PlayerCard
-                      key={u._id}
-                      size={0.6}
-                      vote={u.vote}
-                      name={u.name}
-                      showInitials={!shuffleState[0] && (!shuffleState[1] || shuffleState[1] === "unstack")}
-                      checked={u.ready}
-                    />
-                  ))}
-              </CardStack>
-            </ZoomAnimate>
-          )}
-        </AnimatePresence>
+        {/* players */}
+        <ZoomAnimate>
+          <CardStack cardWidth={2} cardHeight={2.4} shuffle={isVoting} onShuffleState={setShuffleState}>
+            {users
+              .filter((u) => !u.host && !u.me)
+              .map((u) => (
+                <PlayerCard
+                  key={u._id}
+                  size={0.6}
+                  vote={u.vote}
+                  name={u.name}
+                  showInitials={!shuffleState[0] && (!shuffleState[1] || shuffleState[1] === "unstack")}
+                  checked={u.ready}
+                />
+              ))}
+          </CardStack>
+        </ZoomAnimate>
       </$.div>
 
       <VoteToast open={showVoteToast} />

@@ -1,5 +1,3 @@
-// import * as html from "tagged-template-noop";
-
 const html = require("tagged-template-noop");
 
 export default html`

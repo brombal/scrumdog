@@ -4,7 +4,6 @@ import React from "react";
 import { BrowserRouter } from "react-router-dom";
 import { StylixProvider, StylixTheme } from "stylix";
 
-import Debugger from "@client/Debugger";
 import ScrumdogApp from "@client/ui/ScrumdogApp";
 import { materialTheme, stylixTheme } from "@client/ui/theme";
 
@@ -21,7 +20,6 @@ export default function App() {
           <ThemeProvider theme={materialTheme}>
             <StylesProvider jss={jss}>
               <ScrumdogApp height="100vh" width="100vw" />
-              <Debugger />
             </StylesProvider>
           </ThemeProvider>
         </StylixTheme>

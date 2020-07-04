@@ -15,7 +15,7 @@ type RoomHeaderProps = {
 export default function RoomHeader({ roomUrl, roomCode, ...other }: RoomHeaderProps & StylixProps) {
   return (
     <StylixTheme media={["(max-width: 1200px)"]}>
-      <SlideAnimate key="name" distance={-80} {...other}>
+      <SlideAnimate distance={-80} {...other}>
         <$.div
           display="flex"
           align-items={["center", "flex-end"]}

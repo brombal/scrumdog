@@ -39,6 +39,24 @@ export const materialTheme = createMuiTheme({
         },
       },
     },
+    MuiOutlinedInput: {
+      root: {
+        color: "white",
+        "&:hover .MuiOutlinedInput-notchedOutline, &.Mui-focused .MuiOutlinedInput-notchedOutline": {
+          borderColor: "rgba(255,255,255, 0.9)",
+        },
+      },
+      notchedOutline: {
+        borderWidth: 2,
+        borderRadius: 6,
+        borderColor: "rgba(255,255,255, 0.6)",
+      },
+      input: {
+        "&::placeholder": {
+          color: "rgba(255, 255, 255, 0.5)",
+        },
+      },
+    },
     MuiTooltip: {
       tooltip: {
         backgroundColor: "rgba(0,0,0,0.8)",

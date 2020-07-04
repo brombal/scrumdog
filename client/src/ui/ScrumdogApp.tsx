@@ -1,19 +1,22 @@
-import { AnimatePresence } from "framer-motion";
+import { faBomb } from "@fortawesome/pro-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { CircularProgress } from "@material-ui/core";
+import { AnimatePresence, motion } from "framer-motion";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactResizeDetector from "react-resize-detector";
-import { useLocation, useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
+import $, { StylixProps } from "stylix";
 
-import { connectWebSocket, joinRoom, store } from "@client/scrum";
+import { joinRoom, store } from "@client/scrum";
 import BackgroundCardsCanvas from "@client/ui/Background/BackgroundCardsCanvas";
 import HostRoom from "@client/ui/HostRoom";
 import LeaveRoomButton from "@client/ui/LeaveRoomButton";
 import MiniLogo from "@client/ui/MiniLogo";
-import PageLoader from "@client/ui/PageLoader";
 import PlayRoom from "@client/ui/PlayRoom";
-import { absFullSize } from "@client/ui/styles";
+import { absFullSize, flexCentered } from "@client/ui/styles";
 import { GlobalStyles } from "@client/ui/theme";
-import { SlideAnimate } from "@client/util/animations";
-import $, { StylixProps } from "stylix";
+import { FadeAnimate, SlideAnimate } from "@client/util/animations";
+import { EventContext, EventProvider } from "@client/util/useEvent";
 import { delay } from "@shared/util";
 
 import Home from "./Home";
@@ -26,13 +29,20 @@ export default function ScrumdogApp({ ...other }: StylixProps) {
     setSize([w, h]);
   }, []);
 
-  const [state, room, me] = store.useState((s) => [s.state, s.room, s.me]);
-
-  const isHost = me.host;
+  const [error, state, connected, roomCode, isHost] = store.useState((s) => [
+    s.error,
+    s.state,
+    s.connected,
+    s.room?.code,
+    !!s.me?.host,
+  ]);
 
   const ref = useRef<HTMLDivElement>(null);
 
+  const [eventContext] = useState(new EventContext());
+
   const location = useLocation();
+
   useEffect(() => {
     (async () => {
       store.update((s) => {
@@ -45,17 +55,8 @@ export default function ScrumdogApp({ ...other }: StylixProps) {
       let urlRoomCode = location.pathname.replace(/^\//, "");
       if (urlRoomCode.length !== 4) urlRoomCode = null;
 
-      const state = store.get();
-
       if (urlRoomCode) {
-        await joinRoom(urlRoomCode);
-      } else if (state.me?._id) {
-        const { room, users } = await connectWebSocket();
-        store.update((s) => {
-          s.state = "";
-          s.room = room;
-          s.users = users || [];
-        });
+        await joinRoom(urlRoomCode, eventContext.emit);
       } else {
         store.update((s) => {
           s.state = "";
@@ -73,57 +74,103 @@ export default function ScrumdogApp({ ...other }: StylixProps) {
   );
 
   return (
-    <$.div
-      data-label="ScrumdogApp"
-      ref={ref}
-      position="relative"
-      background-color="#091D6F"
-      color="rgba(255, 255, 255, 0.9)"
-      z-index={1}
-      overflow="hidden"
-      {...other}
-    >
-      <GlobalStyles size={size} />
-      {/*<BackgroundCardsCanvas key="BackgroundCardsCanvas" z-index={-1} {...absFullSize} />*/}
+    <EventProvider value={eventContext}>
+      <$.div
+        data-label="ScrumdogApp"
+        ref={ref}
+        position="relative"
+        background-color="#091D6F"
+        color="rgba(255, 255, 255, 0.9)"
+        z-index={1}
+        overflow="hidden"
+        {...other}
+      >
+        <GlobalStyles size={size} />
+        <BackgroundCardsCanvas key="BackgroundCardsCanvas" z-index={-1} {...absFullSize} />
 
-      {state !== "pending" && (
-        <>
-          <$.div
-            data-label="ScrumdogApp-content"
-            {...absFullSize}
-            $css={{
-              "& > *": absFullSize,
-            }}
-          >
-            <AnimatePresence>
-              {state === "creating-room" || state === "loading" || state === "joining-room" ? (
-                <PageLoader key="PageLoader" label={state === "creating-room" ? "creating room..." : "loading..."} />
-              ) : room?.code ? (
-                isHost ? (
-                  <HostRoom key="HostRoom" />
+        {state !== "pending" && (
+          <>
+            <$.div
+              z-index={1}
+              data-label="ScrumdogApp-content"
+              {...absFullSize}
+              $css={{
+                "& > *": absFullSize,
+              }}
+            >
+              <AnimatePresence>
+                {!error &&
+                roomCode &&
+                !(state === "creating-room" || state === "loading" || state === "joining-room") ? (
+                  isHost ? (
+                    <HostRoom key="HostRoom" />
+                  ) : (
+                    <PlayRoom key="PlayRoom" />
+                  )
                 ) : (
-                  <PlayRoom key="PlayRoom" />
-                )
-              ) : (
-                <Home key="Home" />
+                  <Home key="Home" />
+                )}
+              </AnimatePresence>
+            </$.div>
+
+            <AnimatePresence>
+              {error && (
+                <FadeAnimate
+                  key="error"
+                  data-label="ScrumdogApp-disconnected"
+                  background="rgba(0, 0, 0, 0.85)"
+                  {...absFullSize}
+                  {...flexCentered}
+                  flex-direction="column"
+                  z-index={3}
+                >
+                  <$ $el={FontAwesomeIcon} icon={faBomb} />
+                  <$.div font-size="0.6rem" margin-top={20} text-align="center">
+                    Sorry, there was a connection error...
+                    <br />
+                    try refreshing!
+                  </$.div>
+                </FadeAnimate>
+              )}
+
+              {!!roomCode && !connected && (
+                <FadeAnimate
+                  key="disconnected"
+                  data-label="ScrumdogApp-disconnected"
+                  background="rgba(0, 0, 0, 0.8)"
+                  {...absFullSize}
+                  {...flexCentered}
+                  flex-direction="column"
+                  z-index={3}
+                >
+                  <CircularProgress color="inherit" />
+                  <$
+                    $el={motion.div}
+                    font-size="0.8rem"
+                    animate={{ scale: [1, 1.05], opacity: [0.8, 1] }}
+                    $elProps={{ transition: { yoyo: Infinity, ease: "easeInOut" } }}
+                    margin-top={20}
+                  >
+                    Reconnecting...
+                  </$>
+                </FadeAnimate>
+              )}
+
+              {!!roomCode && !state && (
+                <SlideAnimate distance={-135} key="LeaveRoomButton">
+                  <LeaveRoomButton position="absolute" top={20} right={20} z-index={2} />
+                </SlideAnimate>
+              )}
+              {(!!roomCode || state === "creating-room" || state === "joining-room") && (
+                <SlideAnimate distance={-135} key="MiniLogo">
+                  <MiniLogo position="absolute" top={20} left={35} z-index={2} />
+                </SlideAnimate>
               )}
             </AnimatePresence>
-          </$.div>
-          <AnimatePresence>
-            {!!room?.code && !state && (
-              <SlideAnimate distance={-135} key="LeaveRoomButton">
-                <LeaveRoomButton position="absolute" top={20} right={20} />
-              </SlideAnimate>
-            )}
-            {(!!room?.code || state === "creating-room" || state === "joining-room") && (
-              <SlideAnimate distance={-135} key="MiniLogo">
-                <MiniLogo position="absolute" top={20} left={35} />
-              </SlideAnimate>
-            )}
-          </AnimatePresence>
-        </>
-      )}
-      <ReactResizeDetector handleHeight handleWidth onResize={handleResize} />
-    </$.div>
+          </>
+        )}
+        <ReactResizeDetector handleHeight handleWidth onResize={handleResize} />
+      </$.div>
+    </EventProvider>
   );
 }

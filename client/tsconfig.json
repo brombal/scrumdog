@@ -14,7 +14,6 @@
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "noEmit": true,
     "jsx": "react",
     "noImplicitAny": false,
     "baseUrl": "./",
