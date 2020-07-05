@@ -2,6 +2,7 @@
   "name": "scrumdog",
   "version": "1.0.0",
   "private": true,
+  "license": "MIT",
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.28",
     "@fortawesome/free-brands-svg-icons": "^5.13.0",

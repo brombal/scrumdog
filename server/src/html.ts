@@ -1,5 +1,7 @@
-const html = require("tagged-template-noop");
+import html from 'tagged-template-noop';
 
+export default 'asdf';
+/*
 export default html`
   <!DOCTYPE html>
   <html>
@@ -38,3 +40,4 @@ export default html`
     </body>
   </html>
 `;
+*/

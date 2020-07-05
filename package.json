@@ -1,8 +1,7 @@
 {
   "name": "scrumdog",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.1.0",
+  "description": "Scrumdog - Interactive planning poker",
   "scripts": {
     "start": "concurrently npm:client npm:server",
     "client": "cd client && npm start",
@@ -11,7 +10,7 @@
     "lint": "prettier --write \"**/*.tsx?\""
   },
   "author": "Alex Brombal",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^2.31.0",
     "@typescript-eslint/parser": "^2.31.0",
