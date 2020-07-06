@@ -74,7 +74,6 @@ module.exports = () => {
     };
     config.plugins.push(new ForkTsCheckerWebpackPlugin());
     config.module.rules[0].options.transpileOnly = true;
-  } else {
     // config.plugins.push(new BundleAnalyzerPlugin());
   }
 

@@ -1,6 +1,6 @@
 {
   "name": "scrumdog",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "license": "MIT",
   "dependencies": {
@@ -65,6 +65,6 @@
   },
   "scripts": {
     "start": "webpack-dev-server --hot",
-    "build": "webpack --mode production"
+    "build": "URL_PUBLIC=\"https://cdn.jsdelivr.net/gh/brombal/scrumdog@$(node -e \"console.log(require('./package.json').version)\")/client/public/dist/\" webpack --mode production"
   }
 }
