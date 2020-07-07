@@ -1,1 +1,1 @@
-web: SCRUMDOG_GIT_HASH=$(git rev-parse HEAD) npm run start:prod
+web: npm run start:prod
