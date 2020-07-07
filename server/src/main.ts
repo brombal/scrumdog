@@ -41,6 +41,8 @@ import {
   updateUser,
 } from "./queries";
 
+console.log(process.env);
+
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);

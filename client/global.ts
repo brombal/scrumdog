@@ -2,6 +2,7 @@ declare module "scrumdog" {
   global {
     interface Window {
       env: any;
+      socket: SocketIOClient.Socket;
     }
   }
 }

@@ -9,14 +9,6 @@ __webpack_public_path__ = document.scripts[document.scripts.length - 1].src.spli
 
 import App from "./App";
 
-console.log(process.env);
-
-declare global {
-  interface Window {
-    socket: SocketIOClient.Socket;
-  }
-}
-
 const HotApp = hot(App);
 
 ReactDOM.render(
