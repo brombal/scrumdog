@@ -16,13 +16,12 @@ module.exports = () => {
     output: {
       path: __dirname + "/public/dist",
       filename: "[name].js",
-      publicPath: process.env.URL_PUBLIC,
+      publicPath: "", // Note: this is set dynamically in main.tsx using __webpack_public_path__
     },
     resolve: {
       alias: {
         "@client": path.resolve(__dirname, "src"),
         "@shared": path.resolve(__dirname, "../shared"),
-        // "stylix": path.resolve(__dirname, "src/util/stylix"),
       },
       extensions: [".ts", ".tsx", ".js"],
     },
