@@ -157,8 +157,8 @@ export default function ScrumdogApp({ ...other }: StylixProps) {
               )}
 
               {!!roomCode && !state && (
-                <SlideAnimate distance={-135} key="LeaveRoomButton">
-                  <LeaveRoomButton position="absolute" top={20} right={20} z-index={2} />
+                <SlideAnimate distance={-135} key="LeaveRoomButton" position="absolute" top={20} right={20} z-index={2}>
+                  <LeaveRoomButton roomCode={roomCode} />
                 </SlideAnimate>
               )}
               {(!!roomCode || state === "creating-room" || state === "joining-room") && (

@@ -346,3 +346,7 @@ export function useSocketConnectedEffect(effect) {
     return effect(connected);
   }, [connected]);
 }
+
+export function getRoomUrl(roomCode: string) {
+  return `${window.location.protocol}//${window.location.host}/${roomCode}`;
+}

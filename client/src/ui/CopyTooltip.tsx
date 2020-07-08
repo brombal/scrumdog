@@ -1,7 +1,6 @@
 import { Tooltip, TooltipProps } from "@material-ui/core";
 import copy from "copy-to-clipboard";
 import React, { useCallback, useState } from "react";
-
 import $ from "stylix";
 
 export default function CopyTooltip(props: { url: string } & TooltipProps) {

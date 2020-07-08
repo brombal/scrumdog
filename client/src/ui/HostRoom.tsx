@@ -2,12 +2,12 @@ import { faCopy } from "@fortawesome/pro-light-svg-icons";
 import { faPlay, faSquare } from "@fortawesome/pro-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ButtonBase, TextField, Tooltip } from "@material-ui/core";
-import { AnimatePresence, motion, usePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import { useIdle } from "react-use";
 import $, { StylixProps } from "stylix";
 
-import { endVote, startVote, store, updateRoom } from "@client/scrum";
+import { endVote, getRoomUrl, startVote, store, updateRoom } from "@client/scrum";
 import { PlayerCard } from "@client/ui/Cards";
 import CardStack, { ShuffleState } from "@client/ui/CardStack";
 import CopyTooltip from "@client/ui/CopyTooltip";
@@ -51,7 +51,7 @@ export default function HostRoom({ ...other }: HostRoomProps & StylixProps) {
     setMode((mode) => determineMode(mode, idle));
   }, [idle, isPresent, users?.length]);
 
-  const roomUrl = `${window.location.protocol}//${window.location.host}/${room.code}`;
+  const roomUrl = getRoomUrl(room.code);
 
   const isVoting = room?.state === "voting";
 
@@ -67,7 +67,7 @@ export default function HostRoom({ ...other }: HostRoomProps & StylixProps) {
     >
       {/* top room code / user name */}
       <$.div data-label="PlayRoom-header" flex="0 0 100px" display="flex" align-items="center" justify-content="center">
-        <AnimatePresence>{mode === "lobby" && <RoomHeader roomCode={room.code} roomUrl={roomUrl} />}</AnimatePresence>
+        <AnimatePresence>{mode === "lobby" && <RoomHeader />}</AnimatePresence>
       </$.div>
 
       <$.div data-label="HostRoom-content" flex="1 1 auto" display="flex" flex-direction="column">
@@ -80,7 +80,7 @@ export default function HostRoom({ ...other }: HostRoomProps & StylixProps) {
                 <$.div {...flexCentered}>
                   <$
                     $el={TextField}
-                    value={_room?.description}
+                    value={_room?.description || ""}
                     onChange={(e) => updateRoom({ description: e.target.value })}
                     placeholder="issue / ticket / description"
                     flex="1 1 auto"

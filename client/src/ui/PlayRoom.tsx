@@ -1,7 +1,6 @@
 import { faCheck } from "@fortawesome/pro-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import color from "color";
-import { AnimatePresence, usePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { sortBy } from "lodash-es";
 import React, { useEffect, useState } from "react";
 import $, { StylixProps } from "stylix";
@@ -13,16 +12,15 @@ import RoomHeader from "@client/ui/RoomHeader";
 import { absFullSize, flexCentered } from "@client/ui/styles";
 import VoteToast from "@client/ui/VoteToast";
 import { ZoomAnimate } from "@client/util/animations";
+import usePresenceTimer from "@client/util/usePresenceTimer";
 import { delay } from "@shared/util";
 import { decks } from "@shared/values";
 
 import Button from "./Button";
-import usePresenceTimer from "@client/util/usePresenceTimer";
 
 export default function PlayRoom(other: StylixProps) {
   const [room, users, me] = store.useState((s) => [s.room, s.users, s.me]);
   const roomUrl = room && `${window.location.protocol}//${window.location.host}/${room.code}`;
-  const host = users?.find((u) => u.host);
 
   const isPresent = usePresenceTimer(1000);
 
@@ -53,32 +51,17 @@ export default function PlayRoom(other: StylixProps) {
       {...flexCentered}
     >
       {/* top room code / user name */}
-      <$.div data-label="PlayRoom-header" flex="0 0 100px" display="flex" align-items="center" justify-content="center">
-        <RoomHeader roomCode={room?.code} roomUrl={roomUrl} />
+      <$.div data-label="PlayRoom-header" flex="0 0 4rem" display="flex" align-items="center" justify-content="center">
+        <RoomHeader />
       </$.div>
 
-      <$.div
-        data-label="PlayRoom-description"
-        flex="0 0 2rem"
-        padding-top="0.8rem"
-        {...flexCentered}
-        flex-direction="column"
-      >
+      <$.div data-label="PlayRoom-description" flex="0 0 2rem" {...flexCentered}>
         {/* room description */}
         <AnimatePresence>
-          {isPresent && (
-            <>
-              {host?.name && (
-                <ZoomAnimate key="host" font-size="0.5rem" color={color("white").fade(0.4).string()}>
-                  Hosted by {host.name}
-                </ZoomAnimate>
-              )}
-              {room?.description && (
-                <ZoomAnimate key="description" max-width="80vw" font-size="0.6rem">
-                  {room.description}
-                </ZoomAnimate>
-              )}
-            </>
+          {isPresent && room?.description && (
+            <ZoomAnimate key="description" max-width="80vw" font-size="0.6rem">
+              {room.description}
+            </ZoomAnimate>
           )}
         </AnimatePresence>
       </$.div>
