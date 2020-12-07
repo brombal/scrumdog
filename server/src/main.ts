@@ -1,4 +1,6 @@
-require("dotenv-expand")(require("dotenv").config());
+if (process.env.NODE_ENV === "development") {
+  require("dotenv-expand")(require("dotenv").config());
+}
 
 import bodyParser from "body-parser";
 import express from "express";
