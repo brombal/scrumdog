@@ -12,7 +12,7 @@ export default `
               rel="stylesheet"
             />
           `
-          : ""
+          : `<meta name="nothing" />`
       }
       <script>
         window.env = ${JSON.stringify(
