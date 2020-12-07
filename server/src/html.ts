@@ -12,7 +12,7 @@ export default `
               rel="stylesheet"
             />
           `
-          : `<meta name="nothing" />`
+          : ""
       }
       <script>
         window.env = ${JSON.stringify(
@@ -34,7 +34,7 @@ export default `
     </head>
     <body>
       <div id="root"></div>
-      <script src="${process.env.URL_CLIENT}"></script>
+      <script src="${process.env.URL_CLIENT.replace("$HEROKU_SLUG_COMMIT", process.env.HEROKU_SLUG_COMMIT)}"></script>
     </body>
   </html>
 `;
