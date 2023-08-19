@@ -1,29 +1,15 @@
-import { jssPreset, StylesProvider, ThemeProvider } from "@material-ui/core";
-import { create } from "jss";
+import { StylixProvider, StylixTheme } from "@stylix/core";
 import React from "react";
-import { BrowserRouter } from "react-router-dom";
-import { StylixProvider, StylixTheme } from "stylix";
 
-import ScrumdogApp from "@client/ui/ScrumdogApp";
-import { materialTheme, stylixTheme } from "@client/ui/theme";
-
-const jss = create({
-  ...jssPreset(),
-  insertionPoint: "jss-insertion-point",
-});
+import ScrumdogApp from "client/ui/ScrumdogApp";
+import { stylixTheme } from "client/ui/theme";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <StylixProvider id="main">
-        <StylixTheme theme={stylixTheme} media={["(max-width: 768px)"]}>
-          <ThemeProvider theme={materialTheme}>
-            <StylesProvider jss={jss}>
-              <ScrumdogApp height="100vh" width="100vw" />
-            </StylesProvider>
-          </ThemeProvider>
-        </StylixTheme>
-      </StylixProvider>
-    </BrowserRouter>
+    <StylixProvider id="main">
+      <StylixTheme theme={stylixTheme} media={["(max-width: 768px)"]}>
+        <ScrumdogApp height="100vh" width="100vw" />
+      </StylixTheme>
+    </StylixProvider>
   );
 }

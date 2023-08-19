@@ -1,19 +1,17 @@
+import $, { StylixProps, useStylixTheme } from "@stylix/core";
 import interpolate from "color-interpolate";
 import { remove } from "lodash-es";
 import { useCallback, useEffect, useRef } from "react";
 import React from "react";
 import ReactResizeDetector from "react-resize-detector";
-import $, { StylixProps, useStylixThemeContext } from "stylix";
 import Two from "two.js";
 
-import { deg2rad } from "@client/util/math";
+import { deg2rad } from "client/util/math";
 
 export default function BackgroundCardsCanvas(p: StylixProps) {
   const ref = useRef<HTMLDivElement>();
 
-  const {
-    theme: { color },
-  } = useStylixThemeContext();
+  const { color } = useStylixTheme();
 
   const cardCount = 30;
   const angle = deg2rad(-30);

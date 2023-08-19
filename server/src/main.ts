@@ -1,11 +1,9 @@
-if (process.env.NODE_ENV === "development") {
-  require("dotenv-expand")(require("dotenv").config());
-}
+import 'dotenv/config';
 
-import bodyParser from "body-parser";
-import express from "express";
-import http from "http";
-import socketio from "socket.io";
+import bodyParser from 'body-parser';
+import express from 'express';
+import http from 'http';
+import socketio from 'socket.io';
 
 import {
   castVoteEvent,
@@ -23,12 +21,11 @@ import {
   userLeftEvent,
   userUpdatedEvent,
   voteResetEvent,
-} from "@shared/socket";
-import { Room, roomSendable, roomUpdatable, userSendable } from "@shared/types";
-import { delay } from "@shared/util";
+} from 'server/shared/socket';
+import { type Room, roomSendable, roomUpdatable, userSendable } from 'server/shared/types';
+import { delay } from 'server/shared/util';
 
-import { connect } from "./db";
-import html from "./html";
+import { connect } from './db';
 import {
   createRoom,
   endUserSession,
@@ -41,7 +38,7 @@ import {
   updateAllPlayers,
   updateRoom,
   updateUser,
-} from "./queries";
+} from './queries';
 
 console.log(process.env);
 
@@ -49,7 +46,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
 
-io?.on("connection", async (socket) => {
+io?.on('connection', async (socket) => {
   idEvent.on(socket, async ({ id, name }) => {
     await delay(1);
 
@@ -83,8 +80,8 @@ io?.on("connection", async (socket) => {
     const user = await findUserForSocket(socket);
     const room = await updateRoom(user.room, roomUpdatable(updates));
 
-    if ("state" in updates) {
-      await updateAllPlayers(room.code, { vote: "", ready: false });
+    if ('state' in updates) {
+      await updateAllPlayers(room.code, { vote: '', ready: false });
     }
 
     roomUpdatedEvent.emit(socket.to(room.code), room);
@@ -124,7 +121,7 @@ io?.on("connection", async (socket) => {
     if (user) {
       await endUserSession(user);
       if (user.host) {
-        await updateAllPlayers(user.room, { vote: "" });
+        await updateAllPlayers(user.room, { vote: '' });
         roomClosedEvent.emit(socket.to(user.room));
       } else {
         userLeftEvent.emit(socket.to(user.room), userSendable(user));
@@ -141,7 +138,7 @@ io?.on("connection", async (socket) => {
 
   resetVoteEvent.on(socket, async () => {
     const user = await findUserForSocket(socket);
-    await updateAllPlayers(user.room, { vote: "" });
+    await updateAllPlayers(user.room, { vote: '' });
     voteResetEvent.emit(socket.to(user.room));
   });
 
@@ -151,16 +148,16 @@ io?.on("connection", async (socket) => {
     userUpdatedEvent.emit(socket.to(user.room), userSendable(user));
   });
 
-  socket.on("disconnect", async () => {
+  socket.on('disconnect', async () => {
     await removeUserSocket(socket);
   });
 });
 
-app.set("etag", false);
+app.set('etag', false);
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.get("/*", (req, res) => {
+app.get('/*', (req, res) => {
   res.send(html);
 });
 

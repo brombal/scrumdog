@@ -1,35 +1,27 @@
 {
-  "name": "scrumdog-server",
+  "name": "server",
   "version": "1.0.1",
   "description": "scrum.dog server",
   "main": "index.js",
-  "private": true,
+  "type": "module",
   "scripts": {
-    "start:prod": "NODE_PRESERVE_SYMLINKS=1 ts-node -r tsconfig-paths/register src/main.ts",
-    "start": "ts-node-dev --no-notify --inspect -r tsconfig-paths/register -- src/main.ts"
+    "start:prod": "ts-node src/main.ts",
+    "start": "ts-node-dev --no-notify --inspect -- src/main.ts"
   },
   "author": "Alex Brombal",
   "license": "MIT",
   "dependencies": {
-    "@types/express": "^4.17.6",
-    "@types/express-ws": "^3.0.0",
-    "@types/lodash": "^4.14.152",
-    "@types/mongodb": "^3.5.18",
-    "@types/socket.io": "^2.1.6",
-    "body-parser": "^1.19.0",
-    "dotenv": "^8.2.0",
-    "dotenv-expand": "^5.1.0",
-    "express": "^4.17.1",
-    "express-ws": "^4.0.0",
-    "lodash": "^4.17.15",
-    "mongodb": "^3.5.7",
-    "socket.io": "^2.3.0",
-    "ts-node": "^8.10.2",
-    "tsconfig-paths": "^3.9.0",
-    "typescript": "^3.9.4"
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-ws": "^5.0.2",
+    "mongodb": "^5.7.0",
+    "socket.io": "^4.7.2",
+    "ts-node": "^10.9.1"
   },
   "devDependencies": {
-    "prettier": "^2.0.5",
-    "ts-node-dev": "^1.0.0-pre.44"
+    "@types/express": "^4.17.17",
+    "@types/express-ws": "^3.0.1",
+    "ts-node-dev": "^2.0.0"
   }
 }

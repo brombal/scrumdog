@@ -2,12 +2,12 @@ import { faSignOut } from "@fortawesome/pro-light-svg-icons";
 import { faLink } from "@fortawesome/pro-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
-import $, { StylixProps } from "stylix";
+import $, { StylixProps } from "@stylix/core";
 
-import { getRoomUrl, leaveRoom, store } from "@client/scrum";
-import { IconButton } from "@client/ui/Button";
-import CopyTooltip from "@client/ui/CopyTooltip";
-import { flexCentered } from "@client/ui/styles";
+import { getRoomUrl, leaveRoom, store } from "client/scrum";
+import { IconButton } from "client/ui/Button";
+import CopyTooltip from "client/ui/CopyTooltip";
+import { flexCentered } from "client/ui/styles";
 
 type LeaveRoomButtonProps = { roomCode: string };
 

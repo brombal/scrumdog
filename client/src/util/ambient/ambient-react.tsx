@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import Ambient, { AmbientStateAction, AmbientStateMapper } from "@client/util/ambient/ambient";
+import Ambient, { AmbientStateAction, AmbientStateMapper } from "client/util/ambient/ambient";
 
 declare module "@client/util/ambient/ambient" {
   export default interface Ambient<State> {

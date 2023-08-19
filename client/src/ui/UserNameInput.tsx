@@ -1,8 +1,8 @@
-import { TextField } from "@material-ui/core";
+import { TextField } from "@mui/material";
 import React from "react";
 
 import { store, updateUserName } from "../scrum";
-import $ from "stylix";
+import $ from "@stylix/core";
 
 export default function UserNameInput({ ...other }: any) {
   const name = store.useState((s) => s.me?.name);

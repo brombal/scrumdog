@@ -1,11 +1,8 @@
-import "@client/util/ambient/ambient-react";
+import { createObserver, unwrap, useObserver } from 'keck';
+import { debounce, defaultsDeep, isEqual, merge, remove } from 'lodash-es';
+import { useEffect } from 'react';
+import io from 'socket.io-client';
 
-import { debounce, defaultsDeep, merge, pick, remove } from "lodash-es";
-import { useEffect } from "react";
-import io from "socket.io-client";
-
-import Ambient from "@client/util/ambient/ambient";
-import { EventEmitter } from "@client/util/useEvent";
 import {
   castVoteEvent,
   createRoomEvent,
@@ -22,15 +19,23 @@ import {
   userLeftEvent,
   userUpdatedEvent,
   voteResetEvent,
-} from "@shared/socket";
-import { DeckCardValue, Room, roomUpdatable, User } from "@shared/types";
-import { cleanObject, toggleEntry, tryJsonParse } from "@shared/util";
+} from 'server/shared/socket';
+import { type DeckCardValue, type Room, roomUpdatable, type User } from 'server/shared/types';
+import { cleanObject, toggleEntry, tryJsonParse } from 'server/shared/util';
+
+declare global {
+  interface Window {
+    socket: SocketIOClient.Socket | null;
+  }
+}
+
+type ScrumdogState = '' | 'pending' | 'loading' | 'room-closed' | 'joining-room' | 'creating-room' | 'prompt-join';
 
 export interface ScrumdogStore {
   /**
    * The current state (such as "loading"). This is ephemeral and not saved in localStorage.
    */
-  state: string;
+  state: ScrumdogState;
 
   /**
    * Indicates that the socket is currently connected.
@@ -47,19 +52,32 @@ export interface ScrumdogStore {
   users: User[];
 }
 
-let socket: SocketIOClient.Socket;
+export const storeData: ScrumdogStore = defaultsDeep(
+  {
+    state: 'pending',
+    users: [],
+    connected: false,
+    error: false,
+  },
+  getLocalStorageState(),
+  {
+    me: { me: true, name: '' },
+    room: {},
+  },
+) as ScrumdogStore;
+
+export function useScrumdogStore() {
+  return useObserver(storeData);
+}
+
+export const store = createObserver(storeData, () => null);
+
+let socket: SocketIOClient.Socket | null;
 let socketReconnectInterval: any;
 
 export function getLocalStorageState() {
-  return tryJsonParse(localStorage.getItem("ambient")) || {};
+  return tryJsonParse(localStorage.getItem('ambient') || 'null') || {};
 }
-
-export const store = new Ambient(
-  defaultsDeep({ state: "pending", users: [], connected: false, error: false }, getLocalStorageState(), {
-    me: { me: true, name: "" },
-    room: {},
-  }) as ScrumdogStore
-);
 
 export const filterMe = (u: User) => u.me;
 
@@ -69,25 +87,25 @@ export const filterHost = (u: User) => u.host;
 export const filterPlayer = (u: User) => !u.host;
 
 // Store in localStorage when serializable values change
-store.subscribe(
-  (state) => {
-    localStorage.setItem("ambient", JSON.stringify(pick(state, "me")));
+createObserver(
+  storeData,
+  (s) => [s.room, s.me],
+  () => {
+    localStorage.setItem('ambient', JSON.stringify({ me: unwrap(store).me }));
   },
-  (s) => [s.room, s.me]
+  isEqual,
 );
 
 // Whenever users array updates, use the matching entry for the "me" property
-store.subscribe(
+createObserver(
+  storeData,
+  (s) => s.users,
   () => {
-    store.update((s) => {
-      const me = s.users.find((u) => u._id === s.me._id);
-      if (me) {
-        s.me = me;
-        s.me.me = true;
-      }
-    });
+    const me = store.users.find((u) => u._id === store.me._id);
+    if (me) {
+      store.me = me;
+    }
   },
-  (s) => s.users
 );
 
 /**
@@ -98,95 +116,84 @@ store.subscribe(
  * - Updates the state with the user object
  * - Returns the user object.
  */
-export async function connectWebSocket(): Promise<{ room: Room; users: User[] }> {
+export async function connectWebSocket(): Promise<{ room: Room; users: User[] } | undefined> {
   if (socket) return;
 
-  window.socket = socket = io(window.env.REACT_URL_SOCKET);
+  window.socket = socket = io(process.env.URL_SOCKET || '');
 
-  socket.on("connect_error", (e) => {
-    console.log("error", e);
-    if (e.type !== "TransportError") {
-      store.update((s) => (s.error = true));
-    }
+  socket.on('connect_error', (e) => {
+    console.log('error', e);
+    // if (e.type !== 'TransportError') {
+      store.error = true;
+      store.state = '';
+    // }
   });
 
-  socket.on("connect_timeout", (e) => {
+  socket.on('connect_timeout', (e) => {
     // ?
   });
 
   userJoinedEvent.on(socket, (user: User) => {
-    store.update((state) => {
-      state.users.push(user);
-    });
+    store.users.push(user);
   });
 
   userUpdatedEvent.on(socket, (user: User) => {
-    store.update((state) => {
-      merge(
-        state.users.find((p) => p._id === user._id),
-        user
-      );
-    });
+    merge(
+      store.users.find((p) => p._id === user._id),
+      user,
+    );
   });
 
   userLeftEvent.on(socket, (user: User) => {
-    store.update((state) => {
-      remove(state.users, (p) => p._id === user._id);
-    });
-    if (user._id === store.get().me._id) leaveRoom();
+    remove(store.users, (p) => p._id === user._id);
+    if (user._id === store.me._id) {
+      leaveRoom();
+    }
   });
 
-  roomUpdatedEvent.on(socket, (room: Room) => {
-    store.update((state) => {
-      // When room state changes, reset vote for all users (this happens in db but we don't get update via socket)
-      if (room.state !== state.room.state) {
-        resetVoteState(state);
-      }
+  roomUpdatedEvent.on(socket, (room: Partial<Room>) => {
+    // When room state changes, reset vote for all users (this happens in db but we don't get update via socket)
+    if (room.state !== store.room.state) {
+      resetVoteState();
+    }
 
-      // When voting starts, reset all users' ready state
-      if (room.state === "voting") {
-        state.me.ready = false;
-        state.users.forEach((u) => (u.ready = false));
-      }
+    // When voting starts, reset all users' ready state
+    if (room.state === 'voting') {
+      store.me.ready = false;
+      store.users.forEach((u) => (u.ready = false));
+    }
 
-      Object.assign(state.room, room);
-    });
+    Object.assign(store.room, room);
   });
 
   voteResetEvent.on(socket, () => {
-    store.update(resetVoteState);
+    resetVoteState();
   });
 
   roomClosedEvent.on(socket, () => {
     disconnectWebSocket();
-    store.update((s) => {
-      s.room = null;
-      s.users = [];
-      s.state = "room-closed";
-      s.connected = false;
-    });
+    store.room = {} as Room;
+    store.users = [];
+    store.state = 'room-closed';
+    store.connected = false;
   });
 
-  socket.on("disconnect", () => {
-    console.log("disconnected!");
-    store.update((s) => (s.connected = false));
+  socket.on('disconnect', () => {
+    console.log('disconnected!');
+    store.connected = false;
   });
 
   return new Promise((resolve) => {
-    socket.on("connect", (e) => {
-      console.log("connected!", e);
+    socket!.on('connect', (e) => {
+      console.log('connected!', e);
       clearInterval(socketReconnectInterval);
-      store.update((s) => {
-        s.error = false;
-        s.connected = true;
-      });
+      store.error = false;
+      store.connected = true;
 
-      const { me } = store.get();
+      const { me } = store;
 
-      idEvent.emit(socket, { id: me._id, name: me.name }).then((result) => {
-        store.update((s) => {
-          s.me = result.user;
-        });
+      idEvent.emit(socket, { id: me._id as string, name: me.name }).then((result) => {
+        store.me = result.user;
         resolve(result);
       });
     });
@@ -194,157 +201,131 @@ export async function connectWebSocket(): Promise<{ room: Room; users: User[] }>
 }
 
 function disconnectWebSocket() {
-  socket.removeAllListeners();
-  socket.close();
+  socket?.removeAllListeners();
+  socket?.close();
   window.socket = socket = null;
 }
 
-export async function joinRoom(code: string, eventEmitter: EventEmitter) {
-  store.update((s) => {
-    s.state = "joining-room";
-  });
+export async function joinRoom(code: string) {
+  store.state = 'joining-room';
 
   await connectWebSocket();
 
   const { room, users } = (await joinRoomEvent.emit(socket, code)) || {};
   if (room) {
-    store.update((s) => {
-      s.state = "";
-      s.room = room;
-      s.users = users;
-    });
+    store.state = '';
+    store.room = room;
+    store.users = users;
   } else {
     // error (no room)
-    eventEmitter("invalid-room", code);
+    window.eventEmitter.emit('invalid-room', code);
     disconnectWebSocket();
-    store.update((s) => (s.state = "prompt-join"));
+    store.state = 'prompt-join';
   }
 }
 
 export async function createRoom() {
-  const state = store.get();
-
   // If already in a room, or doing something, quit
-  if (state.room?.code || state.state) return;
+  if (store.room?.code || store.state) return;
 
-  store.update((s) => {
-    s.state = "creating-room";
-  });
+  store.state = 'creating-room';
 
   await connectWebSocket();
 
   const { room, users } = await createRoomEvent.emit(window.socket);
-  store.update((s) => {
-    s.state = "";
-    s.room = room;
-    s.users = users;
-  });
+  store.state = '';
+  store.room = room;
+  store.users = users;
 }
 
 export async function leaveRoom() {
   leaveRoomEvent.emit(socket);
   disconnectWebSocket();
-  store.update((s) => {
-    s.room = null;
-    s.me.vote = "";
-    s.users = [];
-    s.state = "";
-    s.connected = false;
-  });
+  store.room = {} as Room;
+  store.me.vote = '';
+  store.users = [];
+  store.state = '';
+  store.connected = false;
 }
 
-function resetVoteState(state: ScrumdogStore) {
-  state.users.forEach((u) => (u.vote = ""));
-  state.me.vote = "";
+function resetVoteState() {
+  store.users.forEach((u) => (u.vote = ''));
+  store.me.vote = '';
 }
 
 const emitUpdateRoomDebounced = debounce(function emitUpdateRoom(updates: Partial<Room>) {
-  if (!store.get().connected || !store.get().me.host) return;
+  if (!store.connected || !store.me.host) return;
   updateRoomEvent.emit(socket, cleanObject(roomUpdatable(updates)));
 }, 750);
 
 export function updateRoom(updates: Partial<Room>) {
-  if (!store.get().connected || !store.get().me.host) return;
-  store.update((s) => Object.assign(s.room, updates));
+  if (!store.connected || !store.me.host) return;
+  Object.assign(store.room, updates);
   emitUpdateRoomDebounced(updates);
 }
 
 export function toggleDeckCard(card: DeckCardValue) {
-  const state = store.update((s) => toggleEntry(s.room.deck, card));
-  updateRoom({ deck: state.room.deck });
+  toggleEntry(store.room.deck, card);
+  updateRoom({ deck: store.room.deck });
 }
 
 export function promptJoinRoom() {
-  store.update((s) => {
-    s.state = "prompt-join";
-    s.room = null;
-  });
+  store.state = 'prompt-join';
+  store.room = {} as Room;
 }
 
 export function cancelPromptJoinRoom() {
-  store.update((s) => {
-    s.state = "";
-    s.room = null;
-  });
+  store.state = '';
+  store.room = {} as Room;
 }
 
 const emitUpdateUserName = debounce(function emitUpdateUserName(name) {
-  if (store.get().connected) updateUserNameEvent.emit(socket, name);
+  if (store.connected) updateUserNameEvent.emit(socket, name);
 }, 750);
 
 export function updateUserName(name) {
-  store.update((s) => {
-    s.me.name = name;
-    // We also need to update the user's entry in the player list.
-    const user = s.users.find(filterMe);
-    if (user) user.name = name;
-  });
+  store.me.name = name;
+  // We also need to update the user's entry in the player list.
+  const user = store.users.find(filterMe);
+  if (user) user.name = name;
   emitUpdateUserName(name); // debounced
 }
 
 export function startVote() {
-  updateRoomEvent.emit(socket, { state: "voting" });
-  store.update((s) => (s.room.state = "voting"));
+  updateRoomEvent.emit(socket, { state: 'voting' });
+  store.room.state = 'voting';
 }
 
 export function castVote(value: DeckCardValue) {
   castVoteEvent.emit(socket, value);
-  store.update((s) => {
-    s.users.find(filterMe).vote = s.me.vote = value;
-  });
+  store.users.find(filterMe)!.vote = store.me.vote = value;
 }
 
 export function resetVote() {
   resetVoteEvent.emit(socket);
-  store.update((s) => {
-    s.users.forEach((u) => (u.vote = ""));
-  });
+  store.users.forEach((u) => (u.vote = ''));
 }
 
 export function endVote() {
-  updateRoomEvent.emit(socket, { state: "" });
-  store.update((s) => {
-    s.room.state = "";
-    s.users.forEach((u) => {
-      u.ready = false;
-      u.vote = "";
-    });
+  updateRoomEvent.emit(socket, { state: '' });
+  store.room.state = '';
+  store.users.forEach((u) => {
+    u.ready = false;
+    u.vote = '';
   });
 }
 
 export function toggleReady() {
-  setUserReadyEvent.emit(socket, !store.get().me.ready);
-  store.update((s) => {
-    s.me.ready = !s.me.ready;
-    s.users.find((u) => u.me).ready = s.me.ready;
-  });
+  setUserReadyEvent.emit(socket, !store.me.ready);
+  store.me.ready = !store.me.ready;
+  store.users.find((u) => u.me)!.ready = store.me.ready;
 }
 
 export function useSocketConnectedEffect(effect) {
-  const connected = store.useState((s) => s.connected);
+  const state = useObserver(store);
   useEffect(() => {
-    return effect(connected);
-  }, [connected]);
+    return effect(state.connected);
+  }, [state.connected]);
 }
 
 export function getRoomUrl(roomCode: string) {

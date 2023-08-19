@@ -1,13 +1,13 @@
 import { faCheck } from "@fortawesome/pro-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Tooltip } from "@material-ui/core";
+import { Tooltip } from "@mui/material";
 import color from "color";
 import { AnimatePresence } from "framer-motion";
 import React from "react";
-import $, { StylixHtmlProps, StylixProps } from "stylix";
+import $, { StylixHtmlProps, StylixProps } from "@stylix/core";
 
-import { FlipAnimate, ZoomAnimate } from "@client/util/animations";
-import { getInitials, isEmoji, stringLength } from "@client/util/strings";
+import { FlipAnimate, ZoomAnimate } from "client/util/animations";
+import { getInitials, isEmoji, stringLength } from "client/util/strings";
 
 import { cardRatio } from "./ScrumdogApp";
 import { absFullSize, flexCentered } from "./styles";

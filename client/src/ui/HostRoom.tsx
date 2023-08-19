@@ -1,23 +1,23 @@
 import { faCopy } from "@fortawesome/pro-light-svg-icons";
 import { faPlay, faSquare } from "@fortawesome/pro-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ButtonBase, TextField, Tooltip } from "@material-ui/core";
+import { ButtonBase, TextField, Tooltip } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import { useIdle } from "react-use";
-import $, { StylixProps } from "stylix";
+import $, { StylixProps } from "@stylix/core";
 
-import { endVote, getRoomUrl, startVote, store, updateRoom } from "@client/scrum";
-import { PlayerCard } from "@client/ui/Cards";
-import CardStack, { ShuffleState } from "@client/ui/CardStack";
-import CopyTooltip from "@client/ui/CopyTooltip";
-import HostDeck from "@client/ui/HostDeck";
-import RoomHeader from "@client/ui/RoomHeader";
-import { absFullSize, flexCentered } from "@client/ui/styles";
-import UserNameInput from "@client/ui/UserNameInput";
-import { ZoomAnimate } from "@client/util/animations";
-import useLatestValue from "@client/util/useLatestValue";
-import usePresenceTimer from "@client/util/usePresenceTimer";
+import { endVote, getRoomUrl, startVote, store, updateRoom } from "client/scrum";
+import { PlayerCard } from "client/ui/Cards";
+import CardStack, { ShuffleState } from "client/ui/CardStack";
+import CopyTooltip from "client/ui/CopyTooltip";
+import HostDeck from "client/ui/HostDeck";
+import RoomHeader from "client/ui/RoomHeader";
+import { absFullSize, flexCentered } from "client/ui/styles";
+import UserNameInput from "client/ui/UserNameInput";
+import { ZoomAnimate } from "client/util/animations";
+import useLatestValue from "client/util/useLatestValue";
+import usePresenceTimer from "client/util/usePresenceTimer";
 
 type HostRoomProps = {};
 

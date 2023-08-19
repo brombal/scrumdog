@@ -1,8 +1,8 @@
 import React from "react";
-import { StylixProps } from "stylix";
+import { StylixProps } from "@stylix/core";
 
-import UserNameInput from "@client/ui/UserNameInput";
-import { SlideAnimate } from "@client/util/animations";
+import UserNameInput from "client/ui/UserNameInput";
+import { SlideAnimate } from "client/util/animations";
 
 type RoomHeaderProps = {};
 

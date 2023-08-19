@@ -1,8 +1,8 @@
 import { ObjectId } from "mongodb";
 
-import { Room, User } from "@shared/types";
-import { cleanObject } from "@shared/util";
-import { defaultDeck } from "@shared/values";
+import { Room, User } from "server/shared/types";
+import { cleanObject } from "server/shared/util";
+import { defaultDeck } from "server/shared/values";
 
 import { db } from "./db";
 

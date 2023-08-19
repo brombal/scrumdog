@@ -1,11 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion";
 import React from "react";
 
-import { store, toggleDeckCard } from "@client/scrum";
-import $, { StylixProps } from "stylix";
-import useLatestValue from "@client/util/useLatestValue";
-import { decks } from "@shared/values";
-import { isEmoji, stringLength } from "@client/util/strings";
+import { store, toggleDeckCard } from "client/scrum";
+import $, { StylixProps } from "@stylix/core";
+import useLatestValue from "client/util/useLatestValue";
+import { decks } from "server/shared/values";
+import { isEmoji, stringLength } from "client/util/strings";
 
 interface HostDeckProps {
   visible: boolean;

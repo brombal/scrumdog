@@ -3,10 +3,10 @@ import doShuffle from "lodash/shuffle";
 import React, { useEffect, useRef, useState } from "react";
 import { useUpdate, useUpdateEffect } from "react-use";
 
-import { delay } from "@shared/util";
+import { delay } from "server/shared/util";
 
-import $, { StylixProps } from "stylix";
-import { flexCentered } from "@client/ui/styles";
+import $, { StylixProps } from "@stylix/core";
+import { flexCentered } from "client/ui/styles";
 
 interface CardStackProps {
   cardWidth: number;

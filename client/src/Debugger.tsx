@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import $ from "stylix";
+import $ from "@stylix/core";
 
-import { roomClosedEvent } from "@shared/socket";
-import { decks } from "@shared/values";
+import { roomClosedEvent } from "server/shared/socket";
+import { decks } from "server/shared/values";
 
 import {
   castVote,
@@ -21,7 +21,6 @@ import {
   updateUserName,
   useSocketConnectedEffect,
 } from "./scrum";
-import { useEventEmitter } from "./util/useEvent";
 
 export default function Debugger() {
   const state = store.useState((s) => s);
@@ -38,8 +37,6 @@ export default function Debugger() {
         setRoomCodeInput("");
       });
   });
-
-  const emitter = useEventEmitter();
 
   return (
     <$.div display="flex" font-size="16px">
@@ -67,7 +64,7 @@ export default function Debugger() {
         ) : state.state === "prompt-join" ? (
           <form
             onSubmit={(e) => {
-              joinRoom(roomCodeInput, emitter);
+              joinRoom(roomCodeInput);
               e.preventDefault();
             }}
           >

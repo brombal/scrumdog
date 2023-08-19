@@ -1,7 +1,7 @@
 import React from "react";
 
-import $ from "stylix";
-import { StylixProps } from "stylix";
+import $ from "@stylix/core";
+import { StylixProps } from "@stylix/core";
 
 type MiniLogoProps = {};
 

@@ -1,9 +1,9 @@
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ButtonBase, ButtonBaseProps, Tooltip, TooltipProps } from "@material-ui/core";
+import { ButtonBase, ButtonBaseProps, Tooltip, TooltipProps } from "@mui/material";
+import $, { StylixProps, useStylixTheme } from "@stylix/core";
 import { motion } from "framer-motion";
 import React from "react";
-import $, { StylixProps, useStylixThemeContext } from "stylix";
 
 interface ButtonProps {
   filled?: boolean;
@@ -43,9 +43,7 @@ export function IconButton(
 }
 
 export default function Button({ filled, ...other }: ButtonProps & ButtonBaseProps & StylixProps) {
-  const {
-    theme: { color },
-  } = useStylixThemeContext();
+  const { color } = useStylixTheme();
 
   return (
     <motion.span whileHover={{ scale: 1.05 }}>

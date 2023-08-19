@@ -1,11 +1,11 @@
-import { Modal } from "@material-ui/core";
+import { Modal } from "@mui/material";
 import { AnimatePresence } from "framer-motion";
 import React, { useEffect, useState } from "react";
-import $ from "stylix";
+import $ from "@stylix/core";
 
-import { absCentered, flexCentered } from "@client/ui/styles";
-import { ZoomAnimate } from "@client/util/animations";
-import { delay } from "@shared/util";
+import { absCentered, flexCentered } from "client/ui/styles";
+import { ZoomAnimate } from "client/util/animations";
+import { delay } from "server/shared/util";
 
 type VoteToastProps = {
   open: boolean;

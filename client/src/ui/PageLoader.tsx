@@ -1,9 +1,9 @@
-import { CircularProgress } from "@material-ui/core";
+import { CircularProgress } from "@mui/material";
 import React from "react";
-import $, { StylixProps } from "stylix";
+import $, { StylixProps } from "@stylix/core";
 
-import { flexCentered } from "@client/ui/styles";
-import { ZoomAnimate } from "@client/util/animations";
+import { flexCentered } from "client/ui/styles";
+import { ZoomAnimate } from "client/util/animations";
 
 interface PageLoaderProps {
   label: string;

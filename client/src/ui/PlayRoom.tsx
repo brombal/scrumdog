@@ -3,18 +3,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AnimatePresence } from "framer-motion";
 import { sortBy } from "lodash-es";
 import React, { useEffect, useState } from "react";
-import $, { StylixProps } from "stylix";
+import $, { StylixProps } from "@stylix/core";
 
-import { castVote, store, toggleReady } from "@client/scrum";
-import { PlayerCard, VoteCard } from "@client/ui/Cards";
-import CardStack, { ShuffleState } from "@client/ui/CardStack";
-import RoomHeader from "@client/ui/RoomHeader";
-import { absFullSize, flexCentered } from "@client/ui/styles";
-import VoteToast from "@client/ui/VoteToast";
-import { ZoomAnimate } from "@client/util/animations";
-import usePresenceTimer from "@client/util/usePresenceTimer";
-import { delay } from "@shared/util";
-import { decks } from "@shared/values";
+import { castVote, store, toggleReady } from "client/scrum";
+import { PlayerCard, VoteCard } from "client/ui/Cards";
+import CardStack, { ShuffleState } from "client/ui/CardStack";
+import RoomHeader from "client/ui/RoomHeader";
+import { absFullSize, flexCentered } from "client/ui/styles";
+import VoteToast from "client/ui/VoteToast";
+import { ZoomAnimate } from "client/util/animations";
+import usePresenceTimer from "client/util/usePresenceTimer";
+import { delay } from "server/shared/util";
+import { decks } from "server/shared/values";
 
 import Button from "./Button";
 
