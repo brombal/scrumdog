@@ -5,7 +5,7 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "start:prod": "NODE_PRESERVE_SYMLINKS=1 ts-node -r tsconfig-paths/register src/main.ts",
+    "start:prod": "NODE_PRESERVE_SYMLINKS=1 ts-node -r tsconfig-paths/register -T src/main.ts",
     "start": "ts-node-dev --no-notify --inspect -r tsconfig-paths/register -- src/main.ts"
   },
   "author": "Alex Brombal",
